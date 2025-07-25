@@ -176,11 +176,11 @@ def estrai_e_salva(pdf_path):
     else:
         print(dati_json)
     
-    prompt_clear = PROMPT_TEMPLATE_EASY_VIEW.format(testo=dati_json)
-    dati_clear = chiama_llm_gemini_testuale(prompt_clear)
+    #prompt_clear = PROMPT_TEMPLATE_EASY_VIEW.format(testo=dati_json)
+    #dati_clear = chiama_llm_gemini_testuale(prompt_clear)
     # dati = chiama_llm_mistral(prompt)
-    if dati_clear:
-        print(dati_clear)
+    #if dati_clear:
+    #    print(dati_clear)
     
     return {
         #"dati_clear": dati_clear, 
@@ -197,8 +197,6 @@ async def upload_pdf(pdf_file: UploadFile = File(...)):
 
     # Simula risposta AI
     testo_estratto = estrai_e_salva(file_path)
-    
-    print(testo_estratto)
     return {
         #"dati_clear": testo_estratto["dati_clear"], 
         "dati_json": testo_estratto["dati_json"],

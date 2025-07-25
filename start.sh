@@ -6,7 +6,7 @@ echo "✅ VENV attivato, Python: $(which python)"
 ollama serve &
 
 # Assicurati che il modello Mistral sia pronto (verifica se installato, altrimenti lo scarica)
-ollama pull mistral
+# ollama pull mistral
 
 # Avvia frontend
 cd frontend

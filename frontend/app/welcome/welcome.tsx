@@ -114,7 +114,7 @@ export default function MyContainer() {
           value.forEach((item, idx) => {
             flatArray.push({
               Sezione: `${section} - ${key}`,
-              Parametro: `Item ${idx + 1}`,
+              Parametro: `Medicinale ${idx + 1}`,
               Valore: item as string | number | boolean,
             });
           });
