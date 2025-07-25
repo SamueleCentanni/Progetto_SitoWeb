@@ -9,7 +9,7 @@ ollama serve &
 # ollama pull mistral
 
 # Avvia frontend
-cd frontend
+cd frontend-gim
 npm run dev &
 
 # Torna al backend
