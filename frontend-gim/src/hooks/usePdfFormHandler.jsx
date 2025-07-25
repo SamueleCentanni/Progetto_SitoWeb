@@ -46,6 +46,7 @@ export default function usePdfFormHandler() {
         });
     };
 
+
     const renderEditableFields = (data, parentKeys = []) => {
         if (typeof data !== "object" || data === null) return null;
 
@@ -58,7 +59,7 @@ export default function usePdfFormHandler() {
                 return (
                     <div key={keys.join("-")} className="mb-2">
                         <div
-                            className="font-semibold text-gray-700 dark:text-gray-200 mb-1"
+                            className="font-semibold text-secondary mb-1"
                             style={indentStyle}
                         >
                             {key}
@@ -74,12 +75,12 @@ export default function usePdfFormHandler() {
                     className="flex items-center space-x-4 mb-2"
                     style={indentStyle}
                 >
-                    <label className="w-48 text-gray-700 dark:text-gray-200 font-medium">
+                    <label className="w-48 text-textLight font-medium">
                         {key}
                     </label>
                     <input
                         type="text"
-                        className="flex-1 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-gray-800 dark:text-gray-100"
+                        className="flex-1 bg-background border border-gray-600 rounded px-2 py-1 text-primary placeholder-textLight"
                         value={value}
                         onChange={(e) => handleFieldChange(keys, e.target.value)}
                     />
