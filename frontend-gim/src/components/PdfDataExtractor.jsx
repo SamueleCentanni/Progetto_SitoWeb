@@ -16,7 +16,7 @@ export default function PdfDataExtractor() {
                         onClose={form.closeAlert}
                     />
                 )}
-                <PdfDataForm {...form} />
+                <PdfDataForm {...form} onReset={form.handleReset} />
 
             </div>
         </main>

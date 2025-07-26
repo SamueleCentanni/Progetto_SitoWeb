@@ -18,8 +18,8 @@ async function uploadPdf(pdfFile) {
 
 async function sendExcel(jsonData, fileName) {
     const payload = {
-        json_data: jsonData,
-        file_name: fileName,
+        dati_json: jsonData,
+        nome_file: fileName,
     };
 
     const response = await fetch("http://127.0.0.1:8000/create_excel", {

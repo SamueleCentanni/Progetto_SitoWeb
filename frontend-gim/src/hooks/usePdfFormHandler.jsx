@@ -12,23 +12,54 @@ export default function usePdfFormHandler() {
 
     const showAlert = (message, type = "info") => {
         setAlert({ message, type, visible: true });
+        setTimeout(() => {
+            setAlert({ message: "", type: "info", visible: false });
+        }, 2000);
     };
     const closeAlert = () => setAlert({ message: "", type: "info", visible: false });
 
     const handleFileSelect = (e) => {
         setSelectedPdf(e.target.files?.[0] || null);
+        // Clear previous data and alerts when a new file is selected
+        setJsonData(null);
+        setAiResponse("");
+        setFileName("");
+        closeAlert();
     };
 
     const handleUploadPdf = async () => {
-        if (!selectedPdf) return;
+        if (!selectedPdf) {
+            showAlert("Please select a PDF file first.", "warning");
+            return;
+        }
+        closeAlert();
         try {
             const data = await uploadPdf(selectedPdf);
             setAiResponse(data.risposta_ai);
-            setJsonData(data.dati_json);
+
+            const processedJsonData = { ...data.dati_json };
+
+            // Normalize the "Terapia domiciliare" field if present
+            if (typeof processedJsonData["Terapia domiciliare"] === "string") {
+                processedJsonData["Terapia domiciliare"] = processedJsonData["Terapia domiciliare"]
+                    .split(",")
+                    .map(item => item.trim())
+                    .filter(item => item !== "");
+            }
+
             setFileName(data.nome_file);
+
+            const isEmpty = !processedJsonData || Object.keys(processedJsonData).length === 0;
+            setJsonData(isEmpty ? null : processedJsonData);
+
+            if (isEmpty) {
+                showAlert("The PDF was processed, but no data was extracted.", "warning");
+            } else {
+                showAlert("✅ PDF processed successfully!", "success");
+            }
         } catch (err) {
-            console.error(err);
-            showAlert("❌ Error uploading PDF.", "error");
+            console.error("Error during PDF upload and processing:", err);
+            showAlert("❌ Error processing PDF. Please try again.", "error");
         }
     };
 
@@ -41,11 +72,15 @@ export default function usePdfFormHandler() {
             for (let i = 0; i < keys.length - 1; i++) {
                 ref = ref[keys[i]];
             }
-            ref[keys[keys.length - 1]] = isNaN(Number(newVal)) ? newVal : Number(newVal);
+            const lastKey = keys[keys.length - 1];
+            if (Array.isArray(ref) && !isNaN(Number(lastKey))) {
+                ref[Number(lastKey)] = newVal;
+            } else {
+                ref[lastKey] = isNaN(Number(newVal)) ? newVal : Number(newVal);
+            }
             return updated;
         });
     };
-
 
     const renderEditableFields = (data, parentKeys = []) => {
         if (typeof data !== "object" || data === null) return null;
@@ -65,6 +100,34 @@ export default function usePdfFormHandler() {
                             {key}
                         </div>
                         {renderEditableFields(value, keys)}
+                    </div>
+                );
+            } else if (Array.isArray(value)) {
+                return (
+                    <div key={keys.join("-")} className="mb-2">
+                        <div
+                            className="font-semibold text-secondary mb-1"
+                            style={indentStyle}
+                        >
+                            {key}
+                        </div>
+                        {value.map((item, index) => (
+                            <div
+                                key={`${keys.join("-")}-${index}`}
+                                className="flex items-center space-x-4 mb-2"
+                                style={{ paddingLeft: `${(depth + 1) * 20}px` }}
+                            >
+                                <label className="w-48 text-textLight font-medium">
+                                    Medicine {index + 1}
+                                </label>
+                                <input
+                                    type="text"
+                                    className="flex-1 bg-background border border-gray-600 rounded px-2 py-1 text-primary placeholder-textLight"
+                                    value={item}
+                                    onChange={(e) => handleFieldChange([...keys, String(index)], e.target.value)}
+                                />
+                            </div>
+                        ))}
                     </div>
                 );
             }
@@ -138,6 +201,10 @@ export default function usePdfFormHandler() {
 
     const handleExportExcel = () => {
         const flatData = flattenJsonToArray();
+        if (flatData.length === 0) {
+            showAlert("No data to export.", "warning");
+            return;
+        }
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.json_to_sheet(flatData);
         adjustColumnWidths(ws, flatData);
@@ -148,6 +215,7 @@ export default function usePdfFormHandler() {
 
         const suggestedName = fileName?.replace(/\.pdf$/i, "") || "medical_data";
         saveAs(blob, `${suggestedName}.xlsx`);
+        showAlert("✅ Data exported to Excel!", "success");
     };
 
     const handleSendExcel = async () => {
@@ -155,14 +223,22 @@ export default function usePdfFormHandler() {
             showAlert("Missing JSON data or file name.", "error");
             return;
         }
-
+        closeAlert();
         try {
             const data = await sendExcel(jsonData, fileName);
-            showAlert(data.message || "✅ Excel created successfully!", "success");
+            showAlert(data.message || "Excel saved successfully in backend!", "success");
         } catch (err) {
-            console.error(err);
-            showAlert("❌ Error creating Excel file.", "error");
+            console.error("Error sending Excel to backend:", err);
+            showAlert("❌ Error saving Excel file to backend.", "error");
         }
+    };
+
+    const handleReset = () => {
+        setSelectedPdf(null);
+        setAiResponse("");
+        setJsonData(null);
+        setFileName("");
+        closeAlert();
     };
 
     return {
@@ -172,10 +248,12 @@ export default function usePdfFormHandler() {
         selectedPdf,
         alert,
         closeAlert,
+        showAlert,
         handleFileSelect,
         handleUploadPdf,
         handleSendExcel,
         handleExportExcel,
         renderEditableFields,
+        handleReset,
     };
 }
